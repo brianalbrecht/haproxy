@@ -76,7 +76,7 @@ print units
 options = ''
 proxy_services = glob.glob("/etc/haproxy/*.is.proxy")
 if len(proxy_services) == 0:
-    options += "    option forwardedfor\n"
+    options += "    option forwardfor\n"
 
 servers = ''
 for unit in units:
