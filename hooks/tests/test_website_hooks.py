@@ -69,7 +69,7 @@ class NotifyRelationTest(TestCase):
         hooks.notify_relation("website", relation_ids=(None,))
 
         self.get_hostname.assert_called_once_with()
-        self.relation_get.assert_called_once_with(relation_id=None)
+        self.relation_get.assert_called_once_with(rid=None)
         self.relation_set.assert_called_once_with(
             relation_id=None, port=80, hostname="foo.local",
             all_services="")
@@ -84,7 +84,7 @@ class NotifyRelationTest(TestCase):
         hooks.notify_relation("peer", relation_ids=(None,))
 
         self.get_hostname.assert_called_once_with()
-        self.relation_get.assert_called_once_with(relation_id=None)
+        self.relation_get.assert_called_once_with(rid=None)
         self.relation_set.assert_called_once_with(
             relation_id=None, port=80, hostname="foo.local",
             all_services="")
@@ -99,7 +99,7 @@ class NotifyRelationTest(TestCase):
         hooks.notify_relation("website", relation_ids=(None,))
 
         self.get_hostname.assert_called_once_with()
-        self.relation_get.assert_called_once_with(relation_id=None)
+        self.relation_get.assert_called_once_with(rid=None)
         self.relation_set.assert_called_once_with(
             relation_id=None, port=80, hostname="foo.local",
             all_services="")
@@ -114,7 +114,7 @@ class NotifyRelationTest(TestCase):
         hooks.notify_relation("peer", relation_ids=(None,))
 
         self.get_hostname.assert_called_once_with()
-        self.relation_get.assert_called_once_with(relation_id=None)
+        self.relation_get.assert_called_once_with(rid=None)
         self.relation_set.assert_called_once_with(
             relation_id=None, port=80, hostname="foo.local",
             all_services="")
@@ -132,8 +132,8 @@ class NotifyRelationTest(TestCase):
         self.get_hostname.assert_called_once_with()
         self.get_relation_ids.assert_called_once_with("website")
         self.relation_get.assert_has_calls([
-            call.relation_get(relation_id="website:1"),
-            call.relation_get(relation_id="website:2"),
+            call.relation_get(rid="website:1"),
+            call.relation_get(rid="website:2"),
             ])
 
         self.relation_set.assert_has_calls([
@@ -157,8 +157,8 @@ class NotifyRelationTest(TestCase):
         self.get_hostname.assert_called_once_with()
         self.get_relation_ids.assert_called_once_with("peer")
         self.relation_get.assert_has_calls([
-            call.relation_get(relation_id="peer:1"),
-            call.relation_get(relation_id="peer:2"),
+            call.relation_get(rid="peer:1"),
+            call.relation_get(rid="peer:2"),
             ])
 
         self.relation_set.assert_has_calls([
