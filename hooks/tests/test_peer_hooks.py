@@ -13,7 +13,7 @@ class PeerRelationTest(TestCase):
     def setUp(self):
         super(PeerRelationTest, self).setUp()
 
-        self.get_relation_data = self.patch_hook("get_relation_data")
+        self.relations_of_type = self.patch_hook("relations_of_type")
         self.log = self.patch_hook("log")
         self.unit_get = self.patch_hook("unit_get")
 
@@ -26,18 +26,18 @@ class PeerRelationTest(TestCase):
     @patch.dict(os.environ, {"JUJU_UNIT_NAME": "haproxy/2"})
     def test_with_peer_same_services(self):
         self.unit_get.return_value = "1.2.4.5"
-        self.get_relation_data.return_value = {
-            "haproxy-1": {
-                "hostname": "haproxy-1",
-                "private-address": "1.2.4.4",
-                "all_services": yaml.dump([
-                    {"service_name": "foo_service",
-                     "service_host": "0.0.0.0",
-                     "service_options": ["balance leastconn"],
-                     "service_port": 4242},
-                    ])
-                }
-            }
+        self.relations_of_type.return_value = [
+            {"__unit__": "haproxy/1",
+             "hostname": "haproxy-1",
+             "private-address": "1.2.4.4",
+             "all_services": yaml.dump([
+                 {"service_name": "foo_service",
+                  "service_host": "0.0.0.0",
+                  "service_options": ["balance leastconn"],
+                  "service_port": 4242},
+                 ])
+             }
+            ]
 
         services_dict = {
             "foo_service": {
@@ -79,7 +79,7 @@ class PeerRelationTest(TestCase):
     @patch.dict(os.environ, {"JUJU_UNIT_NAME": "haproxy/2"})
     def test_with_no_relation_data(self):
         self.unit_get.return_value = "1.2.4.5"
-        self.get_relation_data.return_value = {}
+        self.relations_of_type.return_value = []
 
         services_dict = {
             "foo_service": {
@@ -99,12 +99,12 @@ class PeerRelationTest(TestCase):
     @patch.dict(os.environ, {"JUJU_UNIT_NAME": "haproxy/2"})
     def test_with_missing_all_services(self):
         self.unit_get.return_value = "1.2.4.5"
-        self.get_relation_data.return_value = {
-            "haproxy-1": {
-                "hostname": "haproxy-1",
-                "private-address": "1.2.4.4",
-                }
-            }
+        self.relations_of_type.return_value = [
+            {"__unit__": "haproxy/1",
+             "hostname": "haproxy-1",
+             "private-address": "1.2.4.4",
+             }
+            ]
 
         services_dict = {
             "foo_service": {

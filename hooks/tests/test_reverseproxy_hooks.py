@@ -9,7 +9,7 @@ class ReverseProxyRelationTest(TestCase):
     def setUp(self):
         super(ReverseProxyRelationTest, self).setUp()
 
-        self.get_relation_data = self.patch_hook("get_relation_data")
+        self.relations_of_type = self.patch_hook("relations_of_type")
         self.get_config_services = self.patch_hook("get_config_services")
         self.log = self.patch_hook("log")
         self.write_service_config = self.patch_hook("write_service_config")
@@ -28,7 +28,7 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = None
+        self.relations_of_type.return_value = []
         self.assertIs(None, hooks.create_services())
         self.log.assert_called_once_with("No backend servers, exiting.")
         self.write_service_config.assert_not_called()
@@ -39,18 +39,19 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {}
+        self.relations_of_type.return_value = []
         self.assertIs(None, hooks.create_services())
         self.log.assert_called_once_with("No backend servers, exiting.")
         self.write_service_config.assert_not_called()
 
     def test_relation_no_services(self):
         self.get_config_services.return_value = {}
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "__unit__": "foo/0",
+             "hostname": "backend.1",
+             "private-address": "1.2.3.4"},
+        ]
         self.assertIs(None, hooks.create_services())
         self.log.assert_called_once_with("No services configured, exiting.")
         self.write_service_config.assert_not_called()
@@ -61,12 +62,13 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
         self.assertIs(None, hooks.create_services())
         self.log.assert_has_calls([call.log(
-            "No port in relation data for 'foo', skipping.")])
+            "No port in relation data for 'foo/0', skipping.")])
         self.write_service_config.assert_not_called()
 
     def test_no_private_address_in_relation_data(self):
@@ -75,12 +77,13 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "__unit__": "foo/0"},
+        ]
         self.assertIs(None, hooks.create_services())
         self.log.assert_has_calls([call.log(
-            "No private-address in relation data for 'foo', skipping.")])
+            "No private-address in relation data for 'foo/0', skipping.")])
         self.write_service_config.assert_not_called()
 
     def test_no_hostname_in_relation_data(self):
@@ -89,13 +92,14 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
         self.assertIs(None, hooks.create_services())
         self.log.assert_has_calls([call.log(
-            "No hostname in relation data for 'foo', skipping.")])
+            "No hostname in relation data for 'foo/0', skipping.")])
         self.write_service_config.assert_not_called()
 
     def test_relation_unknown_service(self):
@@ -104,12 +108,13 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "service_name": "invalid",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "service_name": "invalid",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
         self.assertIs(None, hooks.create_services())
         self.log.assert_has_calls([call.log(
             "Service 'invalid' does not exist.")])
@@ -127,7 +132,7 @@ class ReverseProxyRelationTest(TestCase):
                     ]
                 },
             }
-        self.get_relation_data.return_value = {}
+        self.relations_of_type.return_value = []
 
         expected = {
             'service': {
@@ -149,11 +154,12 @@ class ReverseProxyRelationTest(TestCase):
                 "service_name": "service",
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
 
         expected = {
             'service': {
@@ -174,11 +180,12 @@ class ReverseProxyRelationTest(TestCase):
                 "server_options": ["maxconn 4"],
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
 
         expected = {
             'service': {
@@ -201,12 +208,13 @@ class ReverseProxyRelationTest(TestCase):
                 "server_options": ["maxconn 4"],
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "service_name": "foo_service",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "service_name": "foo_service",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
 
         expected = {
             'foo_service': {
@@ -229,11 +237,12 @@ class ReverseProxyRelationTest(TestCase):
                 "server_options": ["maxconn 4"],
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo-1": {"port": 4242,
-                      "hostname": "backend.1",
-                      "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/1"},
+        ]
 
         expected = {
             'foo_service': {
@@ -256,12 +265,13 @@ class ReverseProxyRelationTest(TestCase):
                 "server_options": ["maxconn 4"],
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo": {"port": 4242,
-                    "hostname": "backend.1",
-                    "sitenames": "foo_service bar_service",
-                    "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "sitenames": "foo_service bar_service",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/0"},
+        ]
 
         expected = {
             'foo_service': {
@@ -284,11 +294,12 @@ class ReverseProxyRelationTest(TestCase):
                 "server_options": ["maxconn 4"],
                 },
             }
-        self.get_relation_data.return_value = {
-            "foo-bar1": {"port": 4242,
-                         "hostname": "backend.1",
-                         "private-address": "1.2.3.4"},
-        }
+        self.relations_of_type.return_value = [
+            {"port": 4242,
+             "hostname": "backend.1",
+             "private-address": "1.2.3.4",
+             "__unit__": "foo/1"},
+        ]
 
         expected = {
             'foo_services': {
